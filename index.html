@@ -1,0 +1,1075 @@
+<!DOCTYPE html>
+<!-- saved from url=(0077)file:///C:/Users/qxb843/Downloads/brooks-band-data-flow-calculator%20(2).html -->
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Brooks Band — Data Flow &amp; Assessment Calculator</title>
+<link href="./index_files/css2" rel="stylesheet">
+<style>
+:root{--ink:#0c1a2e;--navy:#14253d;--teal:#0b7d6e;--teal2:#0a9e8b;--teal-l:#e6f5f3;--gold:#b8882e;--gold-l:#fdf5e6;--slate:#4d6275;--fog:#f4f7f9;--pearl:#fafcfd;--bdr:#d8e2ea;--txt:#1b2b3a;--mut:#7a8fa0;--wht:#fff;--red:#c04040;--amber:#cc7a00;--green:#0f7b4f;--purple:#5a3e8a;--r:8px}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Manrope',system-ui,sans-serif;background:var(--ink);color:var(--txt);font-size:13px;line-height:1.5;-webkit-font-smoothing:antialiased}
+.top{background:rgba(12,26,46,.95);backdrop-filter:blur(10px);border-bottom:1px solid rgba(255,255,255,.06);padding:10px 24px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+.top h1{font-family:'Fraunces',serif;font-size:15px;color:#fff;font-weight:400}
+.top h1 em{color:var(--teal2);font-style:normal;font-size:10px;margin-left:6px;letter-spacing:.1em}
+.tabs{display:flex;gap:4px}
+.tab{padding:5px 14px;border-radius:100px;font-size:10.5px;font-weight:600;border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.35);background:none;cursor:pointer;transition:all .15s;font-family:'Manrope',sans-serif}
+.tab:hover{border-color:rgba(255,255,255,.2);color:rgba(255,255,255,.6)}
+.tab.on{background:var(--teal);border-color:var(--teal);color:#fff}
+.pane{display:none;padding:20px 24px 40px;min-height:calc(100vh - 50px)}
+.pane.on{display:block;animation:fi .2s ease}
+@keyframes fi{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.wrap{max-width:1140px;margin:0 auto}
+
+/* Side-by-side flow */
+.flow-grid{display:grid;grid-template-columns:1fr 40px 1fr 40px 1fr;gap:0;align-items:start;margin-top:16px}
+.flow-col{background:var(--pearl);border-radius:var(--r);border:1px solid var(--bdr);padding:14px;min-height:420px}
+.flow-col.dark{background:var(--ink);border-color:rgba(255,255,255,.08)}
+.flow-arrow{display:flex;align-items:center;justify-content:center;color:var(--teal);font-size:22px;font-weight:700;align-self:center;height:100%}
+.fc-hd{font-size:9px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.fc-hd .dot{width:7px;height:7px;border-radius:50%;animation:pulse 1.5s ease infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+.srow{display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:6px;margin-bottom:4px;font-size:11px;transition:all .2s}
+.srow.active{background:rgba(11,125,110,.08);border:1px solid rgba(11,125,110,.2)}
+.srow .ic{font-size:14px;width:20px;text-align:center}
+.srow .lbl{color:var(--slate);flex:1}
+.srow .val{font-family:'Fraunces',serif;font-weight:500;color:var(--ink);font-size:13px}
+.srow.dark-row{color:rgba(255,255,255,.6)}
+.srow.dark-row .lbl{color:rgba(255,255,255,.35)}
+.srow.dark-row .val{color:#fff}
+.srow.dark-row.active{background:rgba(11,125,110,.12);border:1px solid rgba(11,125,110,.3)}
+.destroyed{text-decoration:line-through;color:var(--red);opacity:.5}
+.badge{display:inline-block;font-size:7px;font-weight:700;padding:1px 4px;border-radius:3px;letter-spacing:.04em;vertical-align:middle}
+.badge.raw{background:#fde8e8;color:var(--red)}.badge.label{background:var(--teal-l);color:var(--teal)}.badge.db{background:#e6f5f3;color:var(--teal)}.badge.count{background:#fef3c7;color:var(--amber)}
+
+/* Assessment translator */
+.assess-row{background:var(--wht);border:1px solid var(--bdr);border-radius:var(--r);margin-bottom:10px;overflow:hidden}
+.assess-top{display:grid;grid-template-columns:1fr 30px 1fr 30px 1fr;gap:0;align-items:stretch}
+.assess-cell{padding:10px 12px}
+.assess-cell.sensor{background:#f0fdf8;border-right:1px solid var(--bdr)}
+.assess-cell.dashboard{background:var(--fog)}
+.assess-cell.pearson{background:#fffbeb;border-left:1px solid var(--bdr)}
+.assess-arrow{display:flex;align-items:center;justify-content:center;color:var(--teal);font-size:16px;font-weight:700;background:var(--wht)}
+.ac-hd{font-size:8px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;margin-bottom:4px}
+.ac-body{font-size:11px;line-height:1.6}
+
+/* Calculator */
+.calc-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:16px}
+.calc-card{background:var(--wht);border:1px solid var(--bdr);border-radius:var(--r);overflow:hidden}
+.calc-head{padding:10px 14px;font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;border-bottom:1px solid var(--bdr)}
+.calc-head.teal{background:var(--teal-l);color:var(--teal)}
+.calc-head.amber{background:#fef3c7;color:var(--amber)}
+.calc-head.green{background:#dcfce7;color:var(--green)}
+.calc-head.purple{background:#ede8f7;color:var(--purple)}
+.calc-body{padding:14px}
+.calc-row{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.calc-row label{font-size:11px;color:var(--slate);min-width:120px}
+.calc-row input{border:1px solid var(--bdr);border-radius:4px;padding:5px 8px;font-size:12px;width:80px;font-family:'Manrope',sans-serif;text-align:right;outline:none;transition:border-color .15s}
+.calc-row input:focus{border-color:var(--teal)}
+.calc-result{background:var(--fog);border:1px solid var(--bdr);border-radius:6px;padding:10px 12px;margin-top:10px}
+.calc-result .r-label{font-size:9px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--mut);margin-bottom:2px}
+.calc-result .r-val{font-family:'Fraunces',serif;font-size:20px;color:var(--ink);line-height:1.2}
+.calc-result .r-note{font-size:10px;color:var(--mut);margin-top:4px;font-style:italic}
+.calc-btn{display:inline-block;padding:5px 14px;border-radius:4px;font-size:10px;font-weight:600;cursor:pointer;border:1px solid var(--teal);background:var(--teal);color:#fff;font-family:'Manrope',sans-serif;margin-top:6px;transition:all .15s}
+.calc-btn:hover{background:#096b5e}
+
+.disc{background:var(--gold-l);border:1px solid #e8c96e;border-radius:6px;padding:8px 12px;font-size:10px;color:#6b4a00;line-height:1.6;margin-bottom:14px}
+.section-hd{font-family:'Fraunces',serif;font-size:18px;color:var(--ink);font-weight:400;margin-bottom:6px}
+.section-sub{font-size:11px;color:var(--mut);margin-bottom:14px}
+.bio-ind{display:inline-flex;align-items:center;gap:3px;border:1px solid;border-radius:3px;padding:1px 6px;font-size:9px;font-weight:600;margin:1px}
+.bio-ind.baseline{color:var(--green);border-color:rgba(15,123,79,.25);background:#dcfce7}
+.bio-ind.above{color:var(--amber);border-color:rgba(204,122,0,.25);background:#fef3c7}
+.bio-ind.below{color:var(--purple);border-color:rgba(90,62,138,.25);background:#ede8f7}
+
+.foot{padding:20px 24px;font-size:9px;color:rgba(255,255,255,.15);text-align:center;border-top:1px solid rgba(255,255,255,.04)}
+
+@media(max-width:900px){
+  .flow-grid,.assess-top{display:flex;flex-direction:column}
+  .flow-arrow,.assess-arrow{transform:rotate(90deg);padding:6px 0}
+  .calc-grid{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<div class="top">
+  <h1>Brooks Band<em>Data Flow &amp; Assessment Calculator</em></h1>
+  <div class="tabs">
+    <button class="tab on" onclick="showP(&#39;flow&#39;)">Data Flow</button>
+    <button class="tab" onclick="showP(&#39;translate&#39;)">Assessment Translator</button>
+    <button class="tab" onclick="showP(&#39;calc&#39;)">Calculator</button>
+  </div>
+</div>
+
+<!-- ═══ PANE 1: LIVE DATA FLOW ═══ -->
+<div class="pane on" id="p-flow">
+  <div class="wrap">
+    <div class="section-hd">Side-by-Side: Sensor → On-Device Processing → Dashboard Output</div>
+    <div class="section-sub">Watch what happens to raw data at each stage. Raw signals enter on the left. They're processed and destroyed in the center. Only labels, counts, and acoustic measurements reach the dashboard on the right.</div>
+
+    <div style="margin-bottom:8px">
+      <button class="calc-btn" onclick="simEvent(&#39;quiet&#39;)" style="margin-right:4px">Simulate: Quiet Instruction</button>
+      <button class="calc-btn" onclick="simEvent(&#39;voice&#39;)" style="background:var(--amber);border-color:var(--amber);margin-right:4px">Simulate: Voice Event</button>
+      <button class="calc-btn" onclick="simEvent(&#39;transition&#39;)" style="background:var(--purple);border-color:var(--purple)">Simulate: Transition</button>
+    </div>
+
+    <div class="flow-grid">
+      <!-- COL 1: Raw Sensor -->
+      <div class="flow-col dark">
+        <div class="fc-hd" style="color:var(--red)"><div class="dot" style="background:var(--red)"></div>Raw Signals (On Watch)</div>
+        <div class="srow dark-row active" id="f-mic"><div class="ic">🎙️</div><div class="lbl">Audio waveform</div><div class="val" id="fv-mic">~2.4 KB/sec</div></div>
+        <div class="srow dark-row" id="f-ppg"><div class="ic">💚</div><div class="lbl">PPG light pulses</div><div class="val" id="fv-ppg">~500 B/sec ⚠️</div></div>
+        <div class="srow dark-row" id="f-eda"><div class="ic">⚡</div><div class="lbl">EDA conductance</div><div class="val" id="fv-eda">1 Hz ⚠️</div></div>
+        <div class="srow dark-row active" id="f-acc"><div class="ic">📐</div><div class="lbl">Accel XYZ</div><div class="val" id="fv-acc">25 Hz × 3 ⚠️</div></div>
+        <div class="srow dark-row" id="f-tmp"><div class="ic">🌡️</div><div class="lbl">IR temperature</div><div class="val" id="fv-tmp">On-demand</div></div>
+        <div style="margin-top:10px;padding:6px 8px;background:rgba(192,64,64,.1);border:1px solid rgba(192,64,64,.2);border-radius:4px;font-size:9px;color:#fca5a5;text-align:center">🚫 ALL RAW DATA DESTROYED ON-DEVICE<br>10-sec rolling buffer · continuous overwrite</div>
+      </div>
+
+      <div class="flow-arrow">→</div>
+
+      <!-- COL 2: On-Device Processing -->
+      <div class="flow-col dark">
+        <div class="fc-hd" style="color:var(--amber)"><div class="dot" style="background:var(--amber)"></div>On-Device Processing (Exynos W1000)</div>
+        <div class="srow dark-row"><div class="ic">🔊</div><div class="lbl">Voice isolation</div><div class="val" style="font-size:10px" id="fv-iso">Own-voice: above range</div></div>
+        <div class="srow dark-row"><div class="ic">📏</div><div class="lbl">RMS → dBFS</div><div class="val" id="fv-db">58 dB</div></div>
+        <div class="srow dark-row"><div class="ic">💓</div><div class="lbl">IBI → HRV</div><div class="val" id="fv-hrv" style="font-size:10px">→ below baseline ⚠️</div></div>
+        <div class="srow dark-row"><div class="ic">⚡</div><div class="lbl">EDA → baseline</div><div class="val" id="fv-edap" style="font-size:10px">→ above baseline ⚠️</div></div>
+        <div class="srow dark-row"><div class="ic">🏃</div><div class="lbl">Movement classify</div><div class="val" id="fv-mvp" style="font-size:10px">→ elevated ⚠️</div></div>
+        <div class="srow dark-row"><div class="ic">🌡️</div><div class="lbl">Temp → baseline</div><div class="val" id="fv-tmpp" style="font-size:10px">→ at baseline</div></div>
+        <div class="srow dark-row"><div class="ic">🗑️</div><div class="lbl" style="color:var(--red)">Raw audio</div><div class="val destroyed">DESTROYED</div></div>
+        <div class="srow dark-row"><div class="ic">🗑️</div><div class="lbl" style="color:var(--red)">Raw PPG/EDA</div><div class="val destroyed">DESTROYED</div></div>
+      </div>
+
+      <div class="flow-arrow">→</div>
+
+      <!-- COL 3: Dashboard Output -->
+      <div class="flow-col">
+        <div class="fc-hd" style="color:var(--green)"><div class="dot" style="background:var(--green)"></div>What Reaches the Dashboard</div>
+        <div class="srow active" id="d-voice"><div class="ic">🔊</div><div class="lbl">Voice volume</div><div class="val" id="dv-voice">58 dB <span class="badge db">RAW dB</span></div></div>
+        <div class="srow" id="d-amb"><div class="ic">🌍</div><div class="lbl">Ambient</div><div class="val" id="dv-amb">74 dB <span class="badge db">RAW dB</span></div></div>
+        <div class="srow" id="d-env"><div class="ic">🏫</div><div class="lbl">Environment</div><div class="val" id="dv-env">Transition <span class="badge count">LABEL</span></div></div>
+        <div class="srow active" id="d-hr"><div class="ic">💚</div><div class="lbl">HRV</div><div class="val" id="dv-hr"><span class="bio-ind below">below baseline</span></div></div>
+        <div class="srow active" id="d-eda"><div class="ic">⚡</div><div class="lbl">Skin conductance</div><div class="val" id="dv-eda"><span class="bio-ind above">above baseline</span></div></div>
+        <div class="srow active" id="d-move"><div class="ic">📐</div><div class="lbl">Movement</div><div class="val" id="dv-move"><span class="bio-ind elevated">elevated</span></div></div>
+        <div class="srow" id="d-temp"><div class="ic">🌡️</div><div class="lbl">Skin temp</div><div class="val" id="dv-temp"><span class="bio-ind baseline">at baseline</span></div></div>
+        <div class="srow active" id="d-evt"><div class="ic">📊</div><div class="lbl">Events today</div><div class="val" id="dv-evt">1 + transition <span class="badge count">COUNT</span></div></div>
+        <div style="margin-top:8px;padding:6px 8px;background:rgba(15,123,79,.06);border:1px solid rgba(15,123,79,.15);border-radius:4px;font-size:9px;color:var(--green);text-align:center">✅ Only dB values, labels, counts, durations, timestamps<br>No raw biometric values · No audio · No composite scores</div>
+      </div>
+    </div>
+
+    <div class="disc" style="margin-top:14px"><strong>Data Classification:</strong> Voice volume (dB) and ambient sound (dB) are acoustic measurements transmitted as raw values — equivalent to a sound level meter. Heart rate, HRV, skin conductance, and skin temperature are physiological data transmitted as baseline-referenced wellness labels only (above / at / below personal baseline) — never raw BPM, ms, μS, or °F. Each stream is independent. The professional interprets all data.</div>
+  </div>
+</div>
+
+<!-- ═══ PANE 2: ASSESSMENT TRANSLATOR ═══ -->
+<div class="pane" id="p-translate">
+  <div class="wrap">
+    <div class="section-hd">Dashboard Data → Professional Documentation Reference</div>
+    <div class="section-sub">See exactly how each piece of dashboard data translates into observation references that professionals use when completing their own documentation, rating scales, and structured observations. The platform never fills in any form — it provides the data the professional references.</div>
+
+    <div class="disc"><strong>The platform does not score, rate, or fill in any assessment or form.</strong> It organizes continuous observation data into categories that professionals commonly document. No copyrighted assessment items, scoring criteria, or proprietary terminology from any publisher are reproduced. The professional selects every rating using their own judgment and their own instruments.</div>
+
+    <div style="display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap">
+      <button class="calc-btn" onclick="showTranslate(&#39;all&#39;)" id="tb-all" style="background:var(--ink);border-color:var(--ink)">All</button>
+      <button class="calc-btn" onclick="showTranslate(&#39;sos&#39;)" id="tb-sos" style="background:transparent;border-color:var(--teal);color:var(--teal)">Structured Observation</button>
+      <button class="calc-btn" onclick="showTranslate(&#39;trs&#39;)" id="tb-trs" style="background:transparent;border-color:var(--amber);color:var(--amber)">Behavioral Frequency</button>
+      <button class="calc-btn" onclick="showTranslate(&#39;sp2&#39;)" id="tb-sp2" style="background:transparent;border-color:var(--purple);color:var(--purple)">Sensory / Environmental</button>
+      <button class="calc-btn" onclick="showTranslate(&#39;vin&#39;)" id="tb-vin" style="background:transparent;border-color:var(--green);color:var(--green)">Adaptive Behavior</button>
+      <button class="calc-btn" onclick="showTranslate(&#39;avvof&#39;)" id="tb-avvof" style="background:transparent;border-color:var(--gold);color:var(--gold)">AVVOF Voice Observation</button>
+    </div>
+
+    <div id="trans-list">
+    <div class="assess-row" data-cat="sos">
+      <div style="padding:6px 12px;background:var(--teal)11;border-bottom:1px solid var(--bdr);display:flex;align-items:center;gap:8px">
+        <span style="font-size:9px;font-weight:700;color:var(--teal);letter-spacing:.08em;text-transform:uppercase">Structured Observation</span>
+        <span style="font-size:11px;font-weight:600;color:var(--ink)">Focused Engagement During Instruction</span>
+        <span style="margin-left:auto;font-size:10px;color:var(--mut);font-style:italic">Is the student attending and maintaining focus?</span>
+      </div>
+      <div class="assess-top">
+        <div class="assess-cell sensor">
+          <div class="ac-hd" style="color:var(--red)">🎙️ Sensor Input</div>
+          <div class="ac-body">MIC (voice range) + ACCEL (movement) + PPG (HRV label)</div>
+        </div>
+        <div class="assess-arrow">→</div>
+        <div class="assess-cell dashboard">
+          <div class="ac-hd" style="color:var(--teal)">📊 Dashboard Shows</div>
+          <div class="ac-body">Voice within range: 28 min 12 sec sustained · Movement: low · HRV: at baseline · Ambient: 46 dB</div>
+        </div>
+        <div class="assess-arrow">→</div>
+        <div class="assess-cell pearson">
+          <div class="ac-hd" style="color:var(--gold)">✏️ Professional Completes</div>
+          <div class="ac-body">Observer references sustained within-range duration and movement classification when completing their observation form. Observer decides the code.</div>
+        </div>
+      </div>
+    </div>
+    <div class="assess-row" data-cat="sos">
+      <div style="padding:6px 12px;background:var(--teal)11;border-bottom:1px solid var(--bdr);display:flex;align-items:center;gap:8px">
+        <span style="font-size:9px;font-weight:700;color:var(--teal);letter-spacing:.08em;text-transform:uppercase">Structured Observation</span>
+        <span style="font-size:11px;font-weight:600;color:var(--ink)">Voice Volume by Environment</span>
+        <span style="margin-left:auto;font-size:10px;color:var(--mut);font-style:italic">When and where do voice volume events occur?</span>
+      </div>
+      <div class="assess-top">
+        <div class="assess-cell sensor">
+          <div class="ac-hd" style="color:var(--red)">🎙️ Sensor Input</div>
+          <div class="ac-body">MIC (own-voice isolated dB) + environment label + timestamp</div>
+        </div>
+        <div class="assess-arrow">→</div>
+        <div class="assess-cell dashboard">
+          <div class="ac-hd" style="color:var(--teal)">📊 Dashboard Shows</div>
+          <div class="ac-body">VVE during Quiet Instruction: 0 today · Group Activity: 1 at 8:42:17 AM, peak 68 dB, ambient 62 dB, 14 sec</div>
+        </div>
+        <div class="assess-arrow">→</div>
+        <div class="assess-cell pearson">
+          <div class="ac-hd" style="color:var(--gold)">✏️ Professional Completes</div>
+          <div class="ac-body">Observer references voice event count, dB, timestamp, and environment when completing their observation form. Observer decides the code.</div>
+        </div>
+      </div>
+    </div>
+    <div class="assess-row" data-cat="sos">
+      <div style="padding:6px 12px;background:var(--teal)11;border-bottom:1px solid var(--bdr);display:flex;align-items:center;gap:8px">
+        <span style="font-size:9px;font-weight:700;color:var(--teal);letter-spacing:.08em;text-transform:uppercase">Structured Observation</span>
+        <span style="font-size:11px;font-weight:600;color:var(--ink)">Movement Classification by Environment</span>
+        <span style="margin-left:auto;font-size:10px;color:var(--mut);font-style:italic">What movement patterns occur during different activities?</span>
+      </div>
+      <div class="assess-top">
+        <div class="assess-cell sensor">
+          <div class="ac-hd" style="color:var(--red)">🎙️ Sensor Input</div>
+          <div class="ac-body">ACCEL + GYRO (movement classification)</div>
+        </div>
+        <div class="assess-arrow">→</div>
+        <div class="assess-cell dashboard">
+          <div class="ac-hd" style="color:var(--teal)">📊 Dashboard Shows</div>
+          <div class="ac-body">Movement low: 68 of 82 min instruction · Moderate: 3 episodes (14 min total) · Elevated: transitions only</div>
+        </div>
+        <div class="assess-arrow">→</div>
+        <div class="assess-cell pearson">
+          <div class="ac-hd" style="color:var(--gold)">✏️ Professional Completes</div>
+          <div class="ac-body">Observer references movement classification duration and timing when completing their form. Observer decides the code.</div>
+        </div>
+      </div>
+    </div>
+    <div class="assess-row" data-cat="sos">
+      <div style="padding:6px 12px;background:var(--teal)11;border-bottom:1px solid var(--bdr);display:flex;align-items:center;gap:8px">
+        <span style="font-size:9px;font-weight:700;color:var(--teal);letter-spacing:.08em;text-transform:uppercase">Structured Observation</span>
+        <span style="font-size:11px;font-weight:600;color:var(--ink)">Transition Behavior</span>
+        <span style="margin-left:auto;font-size:10px;color:var(--mut);font-style:italic">What happens during environment changes?</span>
+      </div>
+      <div class="assess-top">
+        <div class="assess-cell sensor">
+          <div class="ac-hd" style="color:var(--red)">🎙️ Sensor Input</div>
+          <div class="ac-body">ACCEL (movement) + PPG (HRV label) + MIC (ambient dB)</div>
+        </div>
+        <div class="assess-arrow">→</div>
+        <div class="assess-cell dashboard">
+          <div class="ac-hd" style="color:var(--teal)">📊 Dashboard Shows</div>
+          <div class="ac-body">Transitions: 4 today · Movement elevated: 3 of 4 · Duration of elevated: 4 min 18 sec · HRV below baseline: 3 of 4 · Ambient: avg 72 dB</div>
+        </div>
+        <div class="assess-arrow">→</div>
+        <div class="assess-cell pearson">
+          <div class="ac-hd" style="color:var(--gold)">✏️ Professional Completes</div>
+          <div class="ac-body">Observer references movement, wellness labels, and ambient dB during transitions. Observer decides the code.</div>
+        </div>
+      </div>
+    </div>
+    <div class="assess-row" data-cat="trs">
+      <div style="padding:6px 12px;background:var(--amber)11;border-bottom:1px solid var(--bdr);display:flex;align-items:center;gap:8px">
+        <span style="font-size:9px;font-weight:700;color:var(--amber);letter-spacing:.08em;text-transform:uppercase">Behavioral Frequency</span>
+        <span style="font-size:11px;font-weight:600;color:var(--ink)">Voice Volume Event Frequency</span>
+        <span style="margin-left:auto;font-size:10px;color:var(--mut);font-style:italic">How often did voice volume exceed personal range?</span>
+      </div>
+      <div class="assess-top">
+        <div class="assess-cell sensor">
+          <div class="ac-hd" style="color:var(--red)">🎙️ Sensor Input</div>
+          <div class="ac-body">MIC (VVE count by environment + dB)</div>
+        </div>
+        <div class="assess-arrow">→</div>
+        <div class="assess-cell dashboard">
+          <div class="ac-hd" style="color:var(--teal)">📊 Dashboard Shows</div>
+          <div class="ac-body">VVE during Quiet Instruction: 3 events across 18 days (0.17/day) · Group Activity: 8 events (0.44/day) · Avg peak: 66 dB</div>
+        </div>
+        <div class="assess-arrow">→</div>
+        <div class="assess-cell pearson">
+          <div class="ac-hd" style="color:var(--gold)">✏️ Professional Completes</div>
+          <div class="ac-body">Professional references 18-day event frequency and environment data when selecting their frequency rating. Professional decides.</div>
+        </div>
+      </div>
+    </div>
+    <div class="assess-row" data-cat="trs">
+      <div style="padding:6px 12px;background:var(--amber)11;border-bottom:1px solid var(--bdr);display:flex;align-items:center;gap:8px">
+        <span style="font-size:9px;font-weight:700;color:var(--amber);letter-spacing:.08em;text-transform:uppercase">Behavioral Frequency</span>
+        <span style="font-size:11px;font-weight:600;color:var(--ink)">Sustained Engagement Frequency</span>
+        <span style="margin-left:auto;font-size:10px;color:var(--mut);font-style:italic">How often and how long did sustained within-range periods occur?</span>
+      </div>
+      <div class="assess-top">
+        <div class="assess-cell sensor">
+          <div class="ac-hd" style="color:var(--red)">🎙️ Sensor Input</div>
+          <div class="ac-body">MIC (sustained periods) + ACCEL (movement interruptions)</div>
+        </div>
+        <div class="assess-arrow">→</div>
+        <div class="assess-cell dashboard">
+          <div class="ac-hd" style="color:var(--teal)">📊 Dashboard Shows</div>
+          <div class="ac-body">Sustained ≥20 min: 28 periods across 18 days (1.6/day) · Longest: 32 min · Interruptions: avg 2.1 per block</div>
+        </div>
+        <div class="assess-arrow">→</div>
+        <div class="assess-cell pearson">
+          <div class="ac-hd" style="color:var(--gold)">✏️ Professional Completes</div>
+          <div class="ac-body">Professional references sustained period frequency and interruption count when selecting their rating. Professional decides.</div>
+        </div>
+      </div>
+    </div>
+    <div class="assess-row" data-cat="trs">
+      <div style="padding:6px 12px;background:var(--amber)11;border-bottom:1px solid var(--bdr);display:flex;align-items:center;gap:8px">
+        <span style="font-size:9px;font-weight:700;color:var(--amber);letter-spacing:.08em;text-transform:uppercase">Behavioral Frequency</span>
+        <span style="font-size:11px;font-weight:600;color:var(--ink)">Vocalization During Structured Wait Periods</span>
+        <span style="margin-left:auto;font-size:10px;color:var(--mut);font-style:italic">How often did vocalizations occur during waiting?</span>
+      </div>
+      <div class="assess-top">
+        <div class="assess-cell sensor">
+          <div class="ac-hd" style="color:var(--red)">🎙️ Sensor Input</div>
+          <div class="ac-body">MIC (vocalizations during wait periods) + ACCEL (movement during wait)</div>
+        </div>
+        <div class="assess-arrow">→</div>
+        <div class="assess-cell dashboard">
+          <div class="ac-hd" style="color:var(--teal)">📊 Dashboard Shows</div>
+          <div class="ac-body">Vocalizations during teacher-annotated wait periods: 14 across 18 days · Movement low to moderate during waiting: 8 of 18</div>
+        </div>
+        <div class="assess-arrow">→</div>
+        <div class="assess-cell pearson">
+          <div class="ac-hd" style="color:var(--gold)">✏️ Professional Completes</div>
+          <div class="ac-body">Professional references vocalization count and movement data. Professional selects the rating.</div>
+        </div>
+      </div>
+    </div>
+    <div class="assess-row" data-cat="sp2">
+      <div style="padding:6px 12px;background:var(--purple)11;border-bottom:1px solid var(--bdr);display:flex;align-items:center;gap:8px">
+        <span style="font-size:9px;font-weight:700;color:var(--purple);letter-spacing:.08em;text-transform:uppercase">Sensory / Environmental</span>
+        <span style="font-size:11px;font-weight:600;color:var(--ink)">Behavior in High-Ambient Sound Environments</span>
+        <span style="margin-left:auto;font-size:10px;color:var(--mut);font-style:italic">What happens when ambient dB is elevated?</span>
+      </div>
+      <div class="assess-top">
+        <div class="assess-cell sensor">
+          <div class="ac-hd" style="color:var(--red)">🎙️ Sensor Input</div>
+          <div class="ac-body">MIC (VVE by ambient dB) + PPG (HRV label by ambient dB)</div>
+        </div>
+        <div class="assess-arrow">→</div>
+        <div class="assess-cell dashboard">
+          <div class="ac-hd" style="color:var(--teal)">📊 Dashboard Shows</div>
+          <div class="ac-body">VVE in &gt;70 dB: 11 of 22 · HRV below baseline in &gt;70 dB: 9 of 11 · VVE in &lt;50 dB: 3 of 22 · HRV at baseline: 3 of 3</div>
+        </div>
+        <div class="assess-arrow">→</div>
+        <div class="assess-cell pearson">
+          <div class="ac-hd" style="color:var(--gold)">✏️ Professional Completes</div>
+          <div class="ac-body">Professional references event frequency and HRV label distribution by ambient dB when completing their sensory observation form. Professional selects the rating.</div>
+        </div>
+      </div>
+    </div>
+    <div class="assess-row" data-cat="sp2">
+      <div style="padding:6px 12px;background:var(--purple)11;border-bottom:1px solid var(--bdr);display:flex;align-items:center;gap:8px">
+        <span style="font-size:9px;font-weight:700;color:var(--purple);letter-spacing:.08em;text-transform:uppercase">Sensory / Environmental</span>
+        <span style="font-size:11px;font-weight:600;color:var(--ink)">Movement and Wellness Labels During Transitions</span>
+        <span style="margin-left:auto;font-size:10px;color:var(--mut);font-style:italic">How do movement and physiology respond to environment changes?</span>
+      </div>
+      <div class="assess-top">
+        <div class="assess-cell sensor">
+          <div class="ac-hd" style="color:var(--red)">🎙️ Sensor Input</div>
+          <div class="ac-body">ACCEL (movement classification) + EDA (label during transitions)</div>
+        </div>
+        <div class="assess-arrow">→</div>
+        <div class="assess-cell dashboard">
+          <div class="ac-hd" style="color:var(--teal)">📊 Dashboard Shows</div>
+          <div class="ac-body">Transitions: movement elevated 15 of 18 · EDA above baseline 14 of 18 · Duration: 4 min 18 sec avg · Quiet Instruction: movement low 17 of 18</div>
+        </div>
+        <div class="assess-arrow">→</div>
+        <div class="assess-cell pearson">
+          <div class="ac-hd" style="color:var(--gold)">✏️ Professional Completes</div>
+          <div class="ac-body">Professional references movement and EDA label distribution by environment when completing their form. Professional selects the rating.</div>
+        </div>
+      </div>
+    </div>
+    <div class="assess-row" data-cat="sp2">
+      <div style="padding:6px 12px;background:var(--purple)11;border-bottom:1px solid var(--bdr);display:flex;align-items:center;gap:8px">
+        <span style="font-size:9px;font-weight:700;color:var(--purple);letter-spacing:.08em;text-transform:uppercase">Sensory / Environmental</span>
+        <span style="font-size:11px;font-weight:600;color:var(--ink)">Duration from Environment Change to Labels at Baseline</span>
+        <span style="margin-left:auto;font-size:10px;color:var(--mut);font-style:italic">How long do wellness labels take to reach baseline after transitions?</span>
+      </div>
+      <div class="assess-top">
+        <div class="assess-cell sensor">
+          <div class="ac-hd" style="color:var(--red)">🎙️ Sensor Input</div>
+          <div class="ac-body">All 6 streams (timestamps of label changes)</div>
+        </div>
+        <div class="assess-arrow">→</div>
+        <div class="assess-cell dashboard">
+          <div class="ac-hd" style="color:var(--teal)">📊 Dashboard Shows</div>
+          <div class="ac-body">Average duration from environment change to all labels at baseline: 3 min 42 sec (range 1:18 – 8:45). Daily log available.</div>
+        </div>
+        <div class="assess-arrow">→</div>
+        <div class="assess-cell pearson">
+          <div class="ac-hd" style="color:var(--gold)">✏️ Professional Completes</div>
+          <div class="ac-body">Professional references duration measurements and daily log. Professional evaluates relevance to their documentation.</div>
+        </div>
+      </div>
+    </div>
+    <div class="assess-row" data-cat="vin">
+      <div style="padding:6px 12px;background:var(--green)11;border-bottom:1px solid var(--bdr);display:flex;align-items:center;gap:8px">
+        <span style="font-size:9px;font-weight:700;color:var(--green);letter-spacing:.08em;text-transform:uppercase">Adaptive Behavior</span>
+        <span style="font-size:11px;font-weight:600;color:var(--ink)">Appropriate Voice Volume Use</span>
+        <span style="margin-left:auto;font-size:10px;color:var(--mut);font-style:italic">Does the student use a voice level appropriate for the setting?</span>
+      </div>
+      <div class="assess-top">
+        <div class="assess-cell sensor">
+          <div class="ac-hd" style="color:var(--red)">🎙️ Sensor Input</div>
+          <div class="ac-body">MIC (voice dB within personal range)</div>
+        </div>
+        <div class="assess-arrow">→</div>
+        <div class="assess-cell dashboard">
+          <div class="ac-hd" style="color:var(--teal)">📊 Dashboard Shows</div>
+          <div class="ac-body">Within range: professional calculates from 22 events across 18 days · Events above range: avg 1.2/day, from 2.8 (wk 1) to 0.5 (wk 6)</div>
+        </div>
+        <div class="assess-arrow">→</div>
+        <div class="assess-cell pearson">
+          <div class="ac-hd" style="color:var(--gold)">✏️ Professional Completes</div>
+          <div class="ac-body">Professional and caregiver reference time-in-range data and daily event trend. Professional determines their rating.</div>
+        </div>
+      </div>
+    </div>
+    <div class="assess-row" data-cat="vin">
+      <div style="padding:6px 12px;background:var(--green)11;border-bottom:1px solid var(--bdr);display:flex;align-items:center;gap:8px">
+        <span style="font-size:9px;font-weight:700;color:var(--green);letter-spacing:.08em;text-transform:uppercase">Adaptive Behavior</span>
+        <span style="font-size:11px;font-weight:600;color:var(--ink)">Independent Return to Within-Range</span>
+        <span style="margin-left:auto;font-size:10px;color:var(--mut);font-style:italic">Does the student return to within-range without adult prompting?</span>
+      </div>
+      <div class="assess-top">
+        <div class="assess-cell sensor">
+          <div class="ac-hd" style="color:var(--red)">🎙️ Sensor Input</div>
+          <div class="ac-body">MIC (self-return count + latency)</div>
+        </div>
+        <div class="assess-arrow">→</div>
+        <div class="assess-cell dashboard">
+          <div class="ac-hd" style="color:var(--teal)">📊 Dashboard Shows</div>
+          <div class="ac-body">Self-returns: 17 of 22 · Avg self-latency: 16.1 sec (from 34 sec wk 1 to 14 sec current) · Duration to all labels at baseline: avg 3 min 42 sec</div>
+        </div>
+        <div class="assess-arrow">→</div>
+        <div class="assess-cell pearson">
+          <div class="ac-hd" style="color:var(--gold)">✏️ Professional Completes</div>
+          <div class="ac-body">Professional references self-return proportion and latency trend. Professional determines their rating.</div>
+        </div>
+      </div>
+    </div>
+    <div class="assess-row" data-cat="vin">
+      <div style="padding:6px 12px;background:var(--green)11;border-bottom:1px solid var(--bdr);display:flex;align-items:center;gap:8px">
+        <span style="font-size:9px;font-weight:700;color:var(--green);letter-spacing:.08em;text-transform:uppercase">Adaptive Behavior</span>
+        <span style="font-size:11px;font-weight:600;color:var(--ink)">Behavior Across Environments</span>
+        <span style="margin-left:auto;font-size:10px;color:var(--mut);font-style:italic">Does the student adjust behavior to different settings?</span>
+      </div>
+      <div class="assess-top">
+        <div class="assess-cell sensor">
+          <div class="ac-hd" style="color:var(--red)">🎙️ Sensor Input</div>
+          <div class="ac-body">MIC (VVE by environment) + ACCEL (movement by environment)</div>
+        </div>
+        <div class="assess-arrow">→</div>
+        <div class="assess-cell dashboard">
+          <div class="ac-hd" style="color:var(--teal)">📊 Dashboard Shows</div>
+          <div class="ac-body">VVE: QI 3/22, GA 8/22, TR 2/22, UN 9/22 · Movement: low (QI), moderate (GA), elevated (TR)</div>
+        </div>
+        <div class="assess-arrow">→</div>
+        <div class="assess-cell pearson">
+          <div class="ac-hd" style="color:var(--gold)">✏️ Professional Completes</div>
+          <div class="ac-body">Professional references behavioral distribution across environments. Professional determines their rating.</div>
+        </div>
+      </div>
+    </div>
+    <div class="assess-row" data-cat="avvof">
+      <div style="padding:6px 12px;background:var(--gold)11;border-bottom:1px solid var(--bdr);display:flex;align-items:center;gap:8px">
+        <span style="font-size:9px;font-weight:700;color:var(--gold);letter-spacing:.08em;text-transform:uppercase">AVVOF Voice Observation</span>
+        <span style="font-size:11px;font-weight:600;color:var(--ink)">Voice Volume Event Frequency</span>
+        <span style="margin-left:auto;font-size:10px;color:var(--mut);font-style:italic">Events per day across observation period</span>
+      </div>
+      <div class="assess-top">
+        <div class="assess-cell sensor">
+          <div class="ac-hd" style="color:var(--red)">🎙️ Sensor Input</div>
+          <div class="ac-body">MIC (own-voice isolated, dB threshold)</div>
+        </div>
+        <div class="assess-arrow">→</div>
+        <div class="assess-cell dashboard">
+          <div class="ac-hd" style="color:var(--teal)">📊 Dashboard Shows</div>
+          <div class="ac-body">22 events across 18 school days · Avg 1.22/day · Range: 0–5/day · Trend: 2.8/day (wk 1) to 0.5/day (wk 6)</div>
+        </div>
+        <div class="assess-arrow">→</div>
+        <div class="assess-cell pearson">
+          <div class="ac-hd" style="color:var(--gold)">✏️ Professional Completes</div>
+          <div class="ac-body">Professional references daily frequency and trend direction. Professional writes IEP progress note.</div>
+        </div>
+      </div>
+    </div>
+    <div class="assess-row" data-cat="avvof">
+      <div style="padding:6px 12px;background:var(--gold)11;border-bottom:1px solid var(--bdr);display:flex;align-items:center;gap:8px">
+        <span style="font-size:9px;font-weight:700;color:var(--gold);letter-spacing:.08em;text-transform:uppercase">AVVOF Voice Observation</span>
+        <span style="font-size:11px;font-weight:600;color:var(--ink)">Self-Return Proportion</span>
+        <span style="margin-left:auto;font-size:10px;color:var(--mut);font-style:italic">Self-returns divided by total returns</span>
+      </div>
+      <div class="assess-top">
+        <div class="assess-cell sensor">
+          <div class="ac-hd" style="color:var(--red)">🎙️ Sensor Input</div>
+          <div class="ac-body">MIC (voice return detection) + absence of adult voice event</div>
+        </div>
+        <div class="assess-arrow">→</div>
+        <div class="assess-cell dashboard">
+          <div class="ac-hd" style="color:var(--teal)">📊 Dashboard Shows</div>
+          <div class="ac-body">17 of 22 returns without adult voice (77.3%) · Avg self-latency: 16.1 sec · Avg prompted-latency: 24.8 sec</div>
+        </div>
+        <div class="assess-arrow">→</div>
+        <div class="assess-cell pearson">
+          <div class="ac-hd" style="color:var(--gold)">✏️ Professional Completes</div>
+          <div class="ac-body">Professional references proportion and latency data. Professional interprets in the context of student goals.</div>
+        </div>
+      </div>
+    </div>
+    <div class="assess-row" data-cat="avvof">
+      <div style="padding:6px 12px;background:var(--gold)11;border-bottom:1px solid var(--bdr);display:flex;align-items:center;gap:8px">
+        <span style="font-size:9px;font-weight:700;color:var(--gold);letter-spacing:.08em;text-transform:uppercase">AVVOF Voice Observation</span>
+        <span style="font-size:11px;font-weight:600;color:var(--ink)">Sustained Within-Range Duration</span>
+        <span style="margin-left:auto;font-size:10px;color:var(--mut);font-style:italic">Longest and average sustained periods</span>
+      </div>
+      <div class="assess-top">
+        <div class="assess-cell sensor">
+          <div class="ac-hd" style="color:var(--red)">🎙️ Sensor Input</div>
+          <div class="ac-body">MIC (continuous within-range monitoring) + timestamps</div>
+        </div>
+        <div class="assess-arrow">→</div>
+        <div class="assess-cell dashboard">
+          <div class="ac-hd" style="color:var(--teal)">📊 Dashboard Shows</div>
+          <div class="ac-body">Periods ≥20 min: 28 across 18 days · Longest: 32 min 14 sec · Avg: 24 min 18 sec · Days with ≥1: 16 of 18</div>
+        </div>
+        <div class="assess-arrow">→</div>
+        <div class="assess-cell pearson">
+          <div class="ac-hd" style="color:var(--gold)">✏️ Professional Completes</div>
+          <div class="ac-body">Professional references sustained duration and frequency. Professional determines progress toward goals.</div>
+        </div>
+      </div>
+    </div>
+    <div class="assess-row" data-cat="avvof">
+      <div style="padding:6px 12px;background:var(--gold)11;border-bottom:1px solid var(--bdr);display:flex;align-items:center;gap:8px">
+        <span style="font-size:9px;font-weight:700;color:var(--gold);letter-spacing:.08em;text-transform:uppercase">AVVOF Voice Observation</span>
+        <span style="font-size:11px;font-weight:600;color:var(--ink)">Environment-Correlated Events</span>
+        <span style="margin-left:auto;font-size:10px;color:var(--mut);font-style:italic">Distribution of events by environment type and ambient dB</span>
+      </div>
+      <div class="assess-top">
+        <div class="assess-cell sensor">
+          <div class="ac-hd" style="color:var(--red)">🎙️ Sensor Input</div>
+          <div class="ac-body">MIC (VVE) + environment classification + ambient dB</div>
+        </div>
+        <div class="assess-arrow">→</div>
+        <div class="assess-cell dashboard">
+          <div class="ac-hd" style="color:var(--teal)">📊 Dashboard Shows</div>
+          <div class="ac-body">QI (45 dB avg): 3/22 · GA (63 dB): 8/22 · TR (72 dB): 2/22 · UN (78 dB): 9/22</div>
+        </div>
+        <div class="assess-arrow">→</div>
+        <div class="assess-cell pearson">
+          <div class="ac-hd" style="color:var(--gold)">✏️ Professional Completes</div>
+          <div class="ac-body">Professional references environment distribution and ambient dB levels. Professional determines relevance to documentation.</div>
+        </div>
+      </div>
+    </div></div>
+  </div>
+</div>
+
+<!-- ═══ PANE 3: CALCULATOR ═══ -->
+<div class="pane" id="p-calc">
+  <div class="wrap">
+    <div class="section-hd">Observation Data Calculator — Preset Functions</div>
+    <div class="section-sub">These calculations convert raw observation counts, durations, and acoustic measurements into proportions, rates, and averages the professional can reference when completing assessments and IEP documentation. All math is performed on acoustic and behavioral data only — never on physiological measurements.</div>
+
+    <div class="disc"><strong>What this calculator does:</strong> Arithmetic on event counts, dB measurements, durations, and timestamps — the same math a teacher does with a calculator when writing an IEP progress report. <strong>What it does NOT do:</strong> Score any assessment, compute clinical severity, generate percentile ranks, combine biometric readings, or produce diagnostic thresholds. The professional interprets every result.</div>
+
+    <div class="calc-grid">
+      <!-- 1: Event Frequency -->
+      <div class="calc-card">
+        <div class="calc-head teal">📊 Event Frequency Rate</div>
+        <div class="calc-body">
+          <div class="calc-row"><label>Total voice events</label><input type="number" id="ef-events" value="22"></div>
+          <div class="calc-row"><label>School days observed</label><input type="number" id="ef-days" value="18"></div>
+          <button class="calc-btn" onclick="calcEventFreq()">Calculate</button>
+          <div class="calc-result"><div class="r-label">Events Per School Day</div><div class="r-val" id="ef-result">1.22</div><div class="r-note">The professional determines whether this frequency is relevant to the student's IEP goals.</div></div>
+        </div>
+      </div>
+
+      <!-- 2: Time in Range -->
+      <div class="calc-card">
+        <div class="calc-head green">⏱️ Time Within Personal Voice Range</div>
+        <div class="calc-body">
+          <div class="calc-row"><label>Total monitored (min)</label><input type="number" id="tr-total" value="360"></div>
+          <div class="calc-row"><label>Total above range (min)</label><input type="number" id="tr-above" value="5.9"></div>
+          <button class="calc-btn" onclick="calcTimeRange()">Calculate</button>
+          <div class="calc-result"><div class="r-label">Proportion Within Personal Voice Range</div><div class="r-val" id="tr-result">98.4%</div><div class="r-note">Monitored minutes minus above-range minutes, divided by monitored minutes. This is an acoustic observation proportion — not a wellness score. Professional interprets.</div></div>
+        </div>
+      </div>
+
+      <!-- 3: Self-Return Rate -->
+      <div class="calc-card">
+        <div class="calc-head amber">🔄 Self-Return Proportion</div>
+        <div class="calc-body">
+          <div class="calc-row"><label>Self-returns (no adult)</label><input type="number" id="sr-self" value="17"></div>
+          <div class="calc-row"><label>Total return events</label><input type="number" id="sr-total" value="22"></div>
+          <button class="calc-btn" onclick="calcSelfReturn()">Calculate</button>
+          <div class="calc-result"><div class="r-label">Self-Return Proportion</div><div class="r-val" id="sr-result">77.3%</div><div class="r-note">Returns to within-range without preceding adult voice event ÷ total returns. Professional interprets this proportion in the context of the student's goals.</div></div>
+        </div>
+      </div>
+
+      <!-- 4: Average Latency -->
+      <div class="calc-card">
+        <div class="calc-head purple">⏳ Average Return Latency</div>
+        <div class="calc-body">
+          <div class="calc-row"><label>Total latency (sec)</label><input type="number" id="al-total" value="405"></div>
+          <div class="calc-row"><label>Return events</label><input type="number" id="al-events" value="22"></div>
+          <button class="calc-btn" onclick="calcLatency()">Calculate</button>
+          <div class="calc-result"><div class="r-label">Average Return Latency</div><div class="r-val" id="al-result">18.4 sec</div><div class="r-note">Average seconds from voice exceeding range to returning within range. Professional interprets trend.</div></div>
+        </div>
+      </div>
+
+      <!-- 5: Environment Distribution -->
+      <div class="calc-card">
+        <div class="calc-head teal">🏫 Events by Environment</div>
+        <div class="calc-body">
+          <div class="calc-row"><label>Quiet Instruction</label><input type="number" id="ed-qi" value="3"></div>
+          <div class="calc-row"><label>Group Activity</label><input type="number" id="ed-ga" value="8"></div>
+          <div class="calc-row"><label>Transition</label><input type="number" id="ed-tr" value="2"></div>
+          <div class="calc-row"><label>Unstructured</label><input type="number" id="ed-un" value="9"></div>
+          <button class="calc-btn" onclick="calcEnvDist()">Calculate</button>
+          <div class="calc-result"><div class="r-label">Distribution</div><div class="r-val" id="ed-result" style="font-size:14px">QI: 13.6% · GA: 36.4% · TR: 9.1% · UN: 40.9%</div><div class="r-note">Proportion of voice events by environment. Supports structured observation and sensory documentation. Professional interprets.</div></div>
+        </div>
+      </div>
+
+      <!-- 6: Sustained Engagement -->
+      <div class="calc-card">
+        <div class="calc-head green">📐 Sustained Period Frequency</div>
+        <div class="calc-body">
+          <div class="calc-row"><label>Periods ≥20 min</label><input type="number" id="se-periods" value="28"></div>
+          <div class="calc-row"><label>School days</label><input type="number" id="se-days" value="18"></div>
+          <div class="calc-row"><label>Longest period (min)</label><input type="number" id="se-longest" value="32"></div>
+          <button class="calc-btn" onclick="calcSustained()">Calculate</button>
+          <div class="calc-result"><div class="r-label">Sustained Periods Per Day / Longest</div><div class="r-val" id="se-result">1.56 /day · Longest: 32 min</div><div class="r-note">Supports TRS attention items and IEP sustained engagement goals. Professional evaluates progress.</div></div>
+        </div>
+      </div>
+
+      <!-- 7: Vocalization Rate -->
+      <div class="calc-card">
+        <div class="calc-head amber">🗣️ Vocalization Rate</div>
+        <div class="calc-body">
+          <div class="calc-row"><label>Vocalizations</label><input type="number" id="vr-voc" value="47"></div>
+          <div class="calc-row"><label>Period (minutes)</label><input type="number" id="vr-min" value="180"></div>
+          <button class="calc-btn" onclick="calcVocRate()">Calculate</button>
+          <div class="calc-result"><div class="r-label">Vocalizations per Minute / Average Interval</div><div class="r-val" id="vr-result">0.26 /min · 1 every 3.8 min</div><div class="r-note">Supports SLP vocalization frequency documentation and SOS vocalization coding.</div></div>
+        </div>
+      </div>
+
+      <!-- 8: Biometric Label Frequency -->
+      <div class="calc-card">
+        <div class="calc-head purple">🏷️ Wellness Label Frequency</div>
+        <div class="calc-body">
+          <div class="calc-row"><label>Events with label X</label><input type="number" id="bc-with" value="14"></div>
+          <div class="calc-row"><label>Total events observed</label><input type="number" id="bc-total" value="22"></div>
+          <button class="calc-btn" onclick="calcBioCo()">Calculate</button>
+          <div class="calc-result"><div class="r-label">Label Frequency</div><div class="r-val" id="bc-result">63.6%</div><div class="r-note">Proportion of events where a specific wellness label (e.g., "HRV below baseline") was present. Labels only — no raw physiological values used. Professional determines relevance.</div></div>
+        </div>
+      </div>
+    </div>
+
+      <!-- 9: dBFS to dBA Converter -->
+      <div class="calc-card">
+        <div class="calc-head teal">🔊 dBFS → dBA Converter</div>
+        <div class="calc-body">
+          <div style="font-size:10px;color:var(--slate);line-height:1.6;margin-bottom:10px;padding:6px 8px;background:var(--fog);border-radius:4px">The watch microphone reads in <strong>dBFS</strong> (decibels relative to digital full scale — 0 dBFS = maximum digital signal, all values are negative). To convert to <strong>dBA</strong> (A-weighted decibels — the standard acoustic scale), add the microphone sensitivity constant and the SLM calibration offset.</div>
+          <div class="calc-row"><label>Raw dBFS reading</label><input type="number" id="db-raw" value="-16" step="0.5"></div>
+          <div class="calc-row"><label>Mic sensitivity (dB)</label><input type="number" id="db-sens" value="94" step="0.5"></div>
+          <div class="calc-row"><label>Cal offset (dBA)</label><input type="number" id="db-offset" value="2.5" step="0.5"></div>
+          <button class="calc-btn" onclick="calcDbConvert()">Convert</button>
+          <div class="calc-result"><div class="r-label">Approximate dBA</div><div class="r-val" id="db-result">80.5 dBA</div><div class="r-note">dBA ≈ dBFS + mic sensitivity + calibration offset. This is an approximation — actual dBA depends on frequency content and A-weighting curve. Sufficient for classroom voice volume observation.</div></div>
+        </div>
+      </div>
+
+      <!-- 10: SLM Calibration Calculator -->
+      <div class="calc-card">
+        <div class="calc-head amber">📐 SLM Calibration Offset Calculator</div>
+        <div class="calc-body">
+          <div style="font-size:10px;color:var(--slate);line-height:1.6;margin-bottom:10px;padding:6px 8px;background:var(--fog);border-radius:4px"><strong>How to calibrate:</strong> Play a steady sound (pink noise from a speaker). Place the watch and a reference Sound Level Meter at the same distance from the source. Read both at the same moment. Enter the values below. The calculator tells you what offset to enter on the watch's Quick Offset screen. The watch accepts offsets in <strong>0.5 dB increments</strong> — the calculator rounds to the nearest 0.5.</div>
+          <div class="calc-row"><label>Reference SLM (dBA)</label><input type="number" id="cal-slm" value="75.0" step="0.1"></div>
+          <div class="calc-row"><label>Watch reading (dBA)</label><input type="number" id="cal-watch" value="72.5" step="0.1"></div>
+          <button class="calc-btn" onclick="calcCalibration()">Calculate Offset</button>
+          <div class="calc-result">
+            <div class="r-label">Calibration Offset to Enter on Watch</div>
+            <div class="r-val" id="cal-result">+2.5 dBA</div>
+            <div class="r-note" id="cal-note">The reference SLM reads 2.5 dBA higher than the watch. Enter +2.5 on the watch's Quick Offset screen (tap + five times from 0.0). The watch will add 2.5 dBA to every reading going forward.</div>
+          </div>
+          <div style="margin-top:10px;padding:8px;background:var(--fog);border-radius:4px;font-size:10px;color:var(--slate);line-height:1.6">
+            <strong>Recommended reference SLMs:</strong> NIOSH SLM app (free, validated by the National Institute for Occupational Safety and Health — the only phone-based SLM with published accuracy data), or any Class 2 or Class 1 dedicated sound level meter. Calibrate in a quiet room with a steady pink noise source at moderate volume (70-80 dBA).
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ROI: TIME & MONEY SAVINGS CALCULATOR -->
+    <div style="margin-top:24px">
+      <div class="section-hd">Time &amp; Cost Savings Calculator — By Professional Role</div>
+      <div class="section-sub">Calculate how much documentation time and cost is saved by using continuous observation data instead of manual data collection. Based on published professional time studies. All inputs are editable.</div>
+
+      <div class="calc-grid">
+        <!-- SLP Savings -->
+        <div class="calc-card">
+          <div class="calc-head teal">🗣️ SLP — Time &amp; Cost Savings</div>
+          <div class="calc-body">
+            <div style="font-size:9px;color:var(--slate);margin-bottom:8px;line-height:1.5;padding:4px 6px;background:var(--fog);border-radius:4px">Published studies show SLPs spend 18–22 min per student per session on manual data collection and documentation. Brooks Band reduces this to approximately 3 min (data review + professional notes).</div>
+            <div class="calc-row"><label>Students on caseload</label><input type="number" id="slp-students" value="35"></div>
+            <div class="calc-row"><label>Sessions/student/week</label><input type="number" id="slp-sessions" value="2"></div>
+            <div class="calc-row"><label>Manual doc time (min)</label><input type="number" id="slp-manual" value="20"></div>
+            <div class="calc-row"><label>With Brooks Band (min)</label><input type="number" id="slp-band" value="3"></div>
+            <div class="calc-row"><label>Hourly billing rate ($)</label><input type="number" id="slp-rate" value="85"></div>
+            <div class="calc-row"><label>School weeks/year</label><input type="number" id="slp-weeks" value="36"></div>
+            <button class="calc-btn" onclick="calcSLP()">Calculate Savings</button>
+            <div class="calc-result">
+              <div class="r-label">Weekly Time Saved</div><div class="r-val" id="slp-weekly">19.8 hrs/week</div>
+              <div class="r-label" style="margin-top:6px">Annual Time Saved</div><div class="r-val" id="slp-annual">714 hrs/year</div>
+              <div class="r-label" style="margin-top:6px">Annual Cost Value of Time Saved</div><div class="r-val" id="slp-dollars">$60,690/year</div>
+              <div class="r-note">Time saved = (manual min − Brooks Band min) × students × sessions/week. Cost value = time saved × hourly billing rate. This represents billable time returned to direct student services. Professional determines actual allocation of saved time.</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- OT Savings -->
+        <div class="calc-card">
+          <div class="calc-head purple">🧠 OT — Time &amp; Cost Savings</div>
+          <div class="calc-body">
+            <div style="font-size:9px;color:var(--slate);margin-bottom:8px;line-height:1.5;padding:4px 6px;background:var(--fog);border-radius:4px">OTs typically spend 25–35 min per student on sensory observation documentation. Manual classroom observation requires physical presence. Continuous sensor data eliminates in-room observation time for data collection.</div>
+            <div class="calc-row"><label>Students on caseload</label><input type="number" id="ot-students" value="28"></div>
+            <div class="calc-row"><label>Observations/student/mo</label><input type="number" id="ot-obs" value="2"></div>
+            <div class="calc-row"><label>Manual obs + doc (min)</label><input type="number" id="ot-manual" value="30"></div>
+            <div class="calc-row"><label>With Brooks Band (min)</label><input type="number" id="ot-band" value="5"></div>
+            <div class="calc-row"><label>Hourly billing rate ($)</label><input type="number" id="ot-rate" value="80"></div>
+            <div class="calc-row"><label>School months/year</label><input type="number" id="ot-months" value="9"></div>
+            <button class="calc-btn" onclick="calcOT()">Calculate Savings</button>
+            <div class="calc-result">
+              <div class="r-label">Monthly Time Saved</div><div class="r-val" id="ot-monthly">23.3 hrs/month</div>
+              <div class="r-label" style="margin-top:6px">Annual Time Saved</div><div class="r-val" id="ot-annual">210 hrs/year</div>
+              <div class="r-label" style="margin-top:6px">Annual Cost Value of Time Saved</div><div class="r-val" id="ot-dollars">$16,800/year</div>
+              <div class="r-note">Includes elimination of in-classroom observation time for data collection. OT still spends professional time interpreting data and writing documentation.</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- SpEd Teacher Savings -->
+        <div class="calc-card">
+          <div class="calc-head amber">👩‍🏫 Special Ed Teacher — Time &amp; Cost Savings</div>
+          <div class="calc-body">
+            <div style="font-size:9px;color:var(--slate);margin-bottom:8px;line-height:1.5;padding:4px 6px;background:var(--fog);border-radius:4px">Special ed teachers spend an estimated 45–60 min per student per quarter compiling IEP progress data from manual observations and tally sheets. With continuous data, compilation drops to approximately 10 min (review + professional narrative).</div>
+            <div class="calc-row"><label>Students with IEPs</label><input type="number" id="tc-students" value="12"></div>
+            <div class="calc-row"><label>Progress reports/year</label><input type="number" id="tc-reports" value="4"></div>
+            <div class="calc-row"><label>Manual compile (min)</label><input type="number" id="tc-manual" value="50"></div>
+            <div class="calc-row"><label>With Brooks Band (min)</label><input type="number" id="tc-band" value="10"></div>
+            <div class="calc-row"><label>Teacher hourly rate ($)</label><input type="number" id="tc-rate" value="45"></div>
+            <button class="calc-btn" onclick="calcTeacher()">Calculate Savings</button>
+            <div class="calc-result">
+              <div class="r-label">Annual Time Saved on IEP Progress Reports</div><div class="r-val" id="tc-annual">32 hrs/year</div>
+              <div class="r-label" style="margin-top:6px">Annual Cost Value</div><div class="r-val" id="tc-dollars">$1,440/year</div>
+              <div class="r-note">Does not include daily data collection time savings (manual tally sheets vs. automatic). Actual daily savings may be substantially higher. Teacher determines how saved time is reallocated.</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- School / District Savings -->
+        <div class="calc-card">
+          <div class="calc-head green">🏫 School / District — Aggregate Savings</div>
+          <div class="calc-body">
+            <div style="font-size:9px;color:var(--slate);margin-bottom:8px;line-height:1.5;padding:4px 6px;background:var(--fog);border-radius:4px">Calculate total time and cost savings across all professional roles for a pilot deployment. Includes SLP, OT, and special ed teacher time recovered.</div>
+            <div class="calc-row"><label>Students in pilot</label><input type="number" id="sc-students" value="5"></div>
+            <div class="calc-row"><label>SLP min saved/student/wk</label><input type="number" id="sc-slp" value="34"></div>
+            <div class="calc-row"><label>OT min saved/student/mo</label><input type="number" id="sc-ot" value="50"></div>
+            <div class="calc-row"><label>Teacher min saved/student/qtr</label><input type="number" id="sc-tc" value="40"></div>
+            <div class="calc-row"><label>Avg blended rate ($/hr)</label><input type="number" id="sc-rate" value="70"></div>
+            <div class="calc-row"><label>School weeks</label><input type="number" id="sc-weeks" value="36"></div>
+            <button class="calc-btn" onclick="calcSchool()">Calculate Pilot Savings</button>
+            <div class="calc-result">
+              <div class="r-label">Total Professional Hours Saved (Pilot)</div><div class="r-val" id="sc-hours">— hrs</div>
+              <div class="r-label" style="margin-top:6px">Total Cost Value (Pilot)</div><div class="r-val" id="sc-dollars">$—</div>
+              <div class="r-note">Professional time returned to direct student services, instruction, and therapy. These are documentation hours recovered, not additional costs incurred. The professionals and school determine how recovered time is allocated.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="disc" style="margin-top:14px"><strong>Compliance note:</strong> All calculations are performed on event counts, acoustic measurements (dB), durations (seconds/minutes), baseline-referenced wellness label frequencies, and professional time estimates. No calculations are performed on raw physiological values. No composite scores are generated. No assessment items are scored. The dBFS-to-dBA conversion and SLM calibration offset are standard acoustic measurement functions. Time and cost savings calculations use published professional time study benchmarks and user-entered values — they represent documentation time recovered, not clinical outcomes. The qualified professional uses these calculated values as reference data when completing their own documentation using their independent professional judgment. This calculator is an arithmetic tool — not a clinical scoring instrument.</div>
+  </div>
+
+
+<div class="foot">
+  Brooks Band™ · AVVOF™ · Sensory Bridges, Inc. · Chattanooga, TN · © 2026<br>
+  General wellness assistive technology. Not a medical device. Not a clinical scoring tool. Demo contains simulated data only.
+</div>
+
+<script>
+// ═══ TABS ═══
+function showP(id){
+  document.querySelectorAll('.pane').forEach(p=>p.classList.remove('on'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('on'));
+  document.getElementById('p-'+id).classList.add('on');
+  event.target.classList.add('on');
+}
+
+// ═══ DATA FLOW SIMULATION ═══
+const scenarios = {
+  quiet: {
+    mic:'~2.4 KB/sec',ppg:'~500 B/sec',eda:'1 Hz stream',acc:'25 Hz × 3 axes',tmp:'On-demand',
+    iso:'Own-voice: in range',db:'42 dB',hrv:'→ at baseline',edap:'→ at baseline',mvp:'→ low',tmpp:'→ at baseline',
+    voice:'42 dB',amb:'46 dB',env:'Quiet Instruction',
+    hr:'<span class="bio-ind baseline">at baseline</span>',edaD:'<span class="bio-ind baseline">at baseline</span>',
+    move:'<span class="bio-ind baseline">low</span>',temp:'<span class="bio-ind baseline">at baseline</span>',evt:'0'
+  },
+  voice: {
+    mic:'~2.4 KB/sec ⚠️',ppg:'~500 B/sec',eda:'1 Hz ⚠️',acc:'25 Hz × 3 ⚠️',tmp:'On-demand',
+    iso:'Own-voice: ABOVE RANGE',db:'68 dB ⚠️',hrv:'→ below baseline',edap:'→ above baseline',mvp:'→ moderate',tmpp:'→ at baseline',
+    voice:'68 dB ⚠️',amb:'62 dB',env:'Group Activity',
+    hr:'<span class="bio-ind below">below baseline</span>',edaD:'<span class="bio-ind above">above baseline</span>',
+    move:'<span class="bio-ind above">moderate</span>',temp:'<span class="bio-ind baseline">at baseline</span>',evt:'1 ⚠️ EVENT'
+  },
+  transition: {
+    mic:'~2.4 KB/sec',ppg:'~500 B/sec ⚠️',eda:'1 Hz ⚠️',acc:'25 Hz × 3 ⚠️',tmp:'On-demand',
+    iso:'Own-voice: above range',db:'58 dB',hrv:'→ below baseline ⚠️',edap:'→ above baseline ⚠️',mvp:'→ elevated ⚠️',tmpp:'→ at baseline',
+    voice:'58 dB',amb:'74 dB',env:'Transition',
+    hr:'<span class="bio-ind below">below baseline</span>',edaD:'<span class="bio-ind above">above baseline</span>',
+    move:'<span class="bio-ind elevated">elevated</span>',temp:'<span class="bio-ind baseline">at baseline</span>',evt:'1 + transition'
+  }
+};
+function simEvent(type){
+  const s=scenarios[type];
+  document.getElementById('fv-mic').textContent=s.mic;
+  document.getElementById('fv-ppg').textContent=s.ppg;
+  document.getElementById('fv-eda').textContent=s.eda;
+  document.getElementById('fv-acc').textContent=s.acc;
+  document.getElementById('fv-tmp').textContent=s.tmp;
+  document.getElementById('fv-iso').textContent=s.iso;
+  document.getElementById('fv-db').textContent=s.db;
+  document.getElementById('fv-hrv').textContent=s.hrv;
+  document.getElementById('fv-edap').textContent=s.edap;
+  document.getElementById('fv-mvp').textContent=s.mvp;
+  document.getElementById('fv-tmpp').textContent=s.tmpp;
+  document.getElementById('dv-voice').innerHTML=s.voice+' <span class="badge db">RAW dB</span>';
+  document.getElementById('dv-amb').innerHTML=s.amb+' <span class="badge db">RAW dB</span>';
+  document.getElementById('dv-env').innerHTML=s.env+' <span class="badge count">LABEL</span>';
+  document.getElementById('dv-hr').innerHTML=s.hr;
+  document.getElementById('dv-eda').innerHTML=s.edaD;
+  document.getElementById('dv-move').innerHTML=s.move;
+  document.getElementById('dv-temp').innerHTML=s.temp;
+  document.getElementById('dv-evt').innerHTML=s.evt+' <span class="badge count">COUNT</span>';
+  // Flash active rows
+  document.querySelectorAll('.srow').forEach(r=>r.classList.remove('active'));
+  if(type!=='quiet'){
+    ['f-mic','f-acc','d-voice','d-evt','d-hr','d-eda','d-move'].forEach(id=>{
+      const el=document.getElementById(id);if(el)el.classList.add('active');
+    });
+  }
+}
+
+// ═══ ASSESSMENT TRANSLATOR ═══
+const transData = [
+  {cat:'sos',assess:'Structured Observation',item:'Focused Engagement During Instruction',q:'Is the student attending and maintaining focus?',sensor:'MIC (voice range) + ACCEL (movement) + PPG (HRV label)',dashboard:'Voice within range: 28 min 12 sec sustained · Movement: low · HRV: at baseline · Ambient: 46 dB',pearson:'Observer references sustained within-range duration and movement classification when completing their observation form. Observer decides the code.'},
+  {cat:'sos',assess:'Structured Observation',item:'Voice Volume by Environment',q:'When and where do voice volume events occur?',sensor:'MIC (own-voice isolated dB) + environment label + timestamp',dashboard:'VVE during Quiet Instruction: 0 today · Group Activity: 1 at 8:42:17 AM, peak 68 dB, ambient 62 dB, 14 sec',pearson:'Observer references voice event count, dB, timestamp, and environment when completing their observation form. Observer decides the code.'},
+  {cat:'sos',assess:'Structured Observation',item:'Movement Classification by Environment',q:'What movement patterns occur during different activities?',sensor:'ACCEL + GYRO (movement classification)',dashboard:'Movement low: 68 of 82 min instruction · Moderate: 3 episodes (14 min total) · Elevated: transitions only',pearson:'Observer references movement classification duration and timing when completing their form. Observer decides the code.'},
+  {cat:'sos',assess:'Structured Observation',item:'Transition Behavior',q:'What happens during environment changes?',sensor:'ACCEL (movement) + PPG (HRV label) + MIC (ambient dB)',dashboard:'Transitions: 4 today · Movement elevated: 3 of 4 · Duration of elevated: 4 min 18 sec · HRV below baseline: 3 of 4 · Ambient: avg 72 dB',pearson:'Observer references movement, wellness labels, and ambient dB during transitions. Observer decides the code.'},
+  {cat:'trs',assess:'Behavioral Frequency',item:'Voice Volume Event Frequency',q:'How often did voice volume exceed personal range?',sensor:'MIC (VVE count by environment + dB)',dashboard:'VVE during Quiet Instruction: 3 events across 18 days (0.17/day) · Group Activity: 8 events (0.44/day) · Avg peak: 66 dB',pearson:'Professional references 18-day event frequency and environment data when selecting their frequency rating. Professional decides.'},
+  {cat:'trs',assess:'Behavioral Frequency',item:'Sustained Engagement Frequency',q:'How often and how long did sustained within-range periods occur?',sensor:'MIC (sustained periods) + ACCEL (movement interruptions)',dashboard:'Sustained ≥20 min: 28 periods across 18 days (1.6/day) · Longest: 32 min · Interruptions: avg 2.1 per block',pearson:'Professional references sustained period frequency and interruption count when selecting their rating. Professional decides.'},
+  {cat:'trs',assess:'Behavioral Frequency',item:'Vocalization During Structured Wait Periods',q:'How often did vocalizations occur during waiting?',sensor:'MIC (vocalizations during wait periods) + ACCEL (movement during wait)',dashboard:'Vocalizations during teacher-annotated wait periods: 14 across 18 days · Movement low to moderate during waiting: 8 of 18',pearson:'Professional references vocalization count and movement data. Professional selects the rating.'},
+  {cat:'sp2',assess:'Sensory / Environmental',item:'Behavior in High-Ambient Sound Environments',q:'What happens when ambient dB is elevated?',sensor:'MIC (VVE by ambient dB) + PPG (HRV label by ambient dB)',dashboard:'VVE in >70 dB: 11 of 22 · HRV below baseline in >70 dB: 9 of 11 · VVE in <50 dB: 3 of 22 · HRV at baseline: 3 of 3',pearson:'Professional references event frequency and HRV label distribution by ambient dB when completing their sensory observation form. Professional selects the rating.'},
+  {cat:'sp2',assess:'Sensory / Environmental',item:'Movement and Wellness Labels During Transitions',q:'How do movement and physiology respond to environment changes?',sensor:'ACCEL (movement classification) + EDA (label during transitions)',dashboard:'Transitions: movement elevated 15 of 18 · EDA above baseline 14 of 18 · Duration: 4 min 18 sec avg · Quiet Instruction: movement low 17 of 18',pearson:'Professional references movement and EDA label distribution by environment when completing their form. Professional selects the rating.'},
+  {cat:'sp2',assess:'Sensory / Environmental',item:'Duration from Environment Change to Labels at Baseline',q:'How long do wellness labels take to reach baseline after transitions?',sensor:'All 6 streams (timestamps of label changes)',dashboard:'Average duration from environment change to all labels at baseline: 3 min 42 sec (range 1:18 – 8:45). Daily log available.',pearson:'Professional references duration measurements and daily log. Professional evaluates relevance to their documentation.'},
+  {cat:'vin',assess:'Adaptive Behavior',item:'Appropriate Voice Volume Use',q:'Does the student use a voice level appropriate for the setting?',sensor:'MIC (voice dB within personal range)',dashboard:'Within range: professional calculates from 22 events across 18 days · Events above range: avg 1.2/day, from 2.8 (wk 1) to 0.5 (wk 6)',pearson:'Professional and caregiver reference time-in-range data and daily event trend. Professional determines their rating.'},
+  {cat:'vin',assess:'Adaptive Behavior',item:'Independent Return to Within-Range',q:'Does the student return to within-range without adult prompting?',sensor:'MIC (self-return count + latency)',dashboard:'Self-returns: 17 of 22 · Avg self-latency: 16.1 sec (from 34 sec wk 1 to 14 sec current) · Duration to all labels at baseline: avg 3 min 42 sec',pearson:'Professional references self-return proportion and latency trend. Professional determines their rating.'},
+  {cat:'vin',assess:'Adaptive Behavior',item:'Behavior Across Environments',q:'Does the student adjust behavior to different settings?',sensor:'MIC (VVE by environment) + ACCEL (movement by environment)',dashboard:'VVE: QI 3/22, GA 8/22, TR 2/22, UN 9/22 · Movement: low (QI), moderate (GA), elevated (TR)',pearson:'Professional references behavioral distribution across environments. Professional determines their rating.'},
+  {cat:'avvof',assess:'AVVOF Voice Observation',item:'Voice Volume Event Frequency',q:'Events per day across observation period',sensor:'MIC (own-voice isolated, dB threshold)',dashboard:'22 events across 18 school days · Avg 1.22/day · Range: 0–5/day · Trend: 2.8/day (wk 1) to 0.5/day (wk 6)',pearson:'Professional references daily frequency and trend direction. Professional writes IEP progress note.'},
+  {cat:'avvof',assess:'AVVOF Voice Observation',item:'Self-Return Proportion',q:'Self-returns divided by total returns',sensor:'MIC (voice return detection) + absence of adult voice event',dashboard:'17 of 22 returns without adult voice (77.3%) · Avg self-latency: 16.1 sec · Avg prompted-latency: 24.8 sec',pearson:'Professional references proportion and latency data. Professional interprets in the context of student goals.'},
+  {cat:'avvof',assess:'AVVOF Voice Observation',item:'Sustained Within-Range Duration',q:'Longest and average sustained periods',sensor:'MIC (continuous within-range monitoring) + timestamps',dashboard:'Periods ≥20 min: 28 across 18 days · Longest: 32 min 14 sec · Avg: 24 min 18 sec · Days with ≥1: 16 of 18',pearson:'Professional references sustained duration and frequency. Professional determines progress toward goals.'},
+  {cat:'avvof',assess:'AVVOF Voice Observation',item:'Environment-Correlated Events',q:'Distribution of events by environment type and ambient dB',sensor:'MIC (VVE) + environment classification + ambient dB',dashboard:'QI (45 dB avg): 3/22 · GA (63 dB): 8/22 · TR (72 dB): 2/22 · UN (78 dB): 9/22',pearson:'Professional references environment distribution and ambient dB levels. Professional determines relevance to documentation.'},
+];
+
+function buildTranslateList(filter){
+  const list=document.getElementById('trans-list');
+  list.innerHTML='';
+  const items=filter==='all'?transData:transData.filter(d=>d.cat===filter);
+  const colors={sos:'var(--teal)',trs:'var(--amber)',sp2:'var(--purple)',vin:'var(--green)',avvof:'var(--gold)'};
+  items.forEach(d=>{
+    const c=colors[d.cat]||'var(--teal)';
+    list.innerHTML+=`
+    <div class="assess-row" data-cat="${d.cat}">
+      <div style="padding:6px 12px;background:${c}11;border-bottom:1px solid var(--bdr);display:flex;align-items:center;gap:8px">
+        <span style="font-size:9px;font-weight:700;color:${c};letter-spacing:.08em;text-transform:uppercase">${d.assess}</span>
+        <span style="font-size:11px;font-weight:600;color:var(--ink)">${d.item}</span>
+        <span style="margin-left:auto;font-size:10px;color:var(--mut);font-style:italic">${d.q}</span>
+      </div>
+      <div class="assess-top">
+        <div class="assess-cell sensor">
+          <div class="ac-hd" style="color:var(--red)">🎙️ Sensor Input</div>
+          <div class="ac-body">${d.sensor}</div>
+        </div>
+        <div class="assess-arrow">→</div>
+        <div class="assess-cell dashboard">
+          <div class="ac-hd" style="color:var(--teal)">📊 Dashboard Shows</div>
+          <div class="ac-body">${d.dashboard}</div>
+        </div>
+        <div class="assess-arrow">→</div>
+        <div class="assess-cell pearson">
+          <div class="ac-hd" style="color:var(--gold)">✏️ Professional Completes</div>
+          <div class="ac-body">${d.pearson}</div>
+        </div>
+      </div>
+    </div>`;
+  });
+}
+function showTranslate(filter){
+  document.querySelectorAll('[id^="tb-"]').forEach(b=>{b.style.background='transparent';b.style.color=b.style.borderColor});
+  const btn=document.getElementById('tb-'+filter);
+  if(btn){btn.style.background=btn.style.borderColor;btn.style.color='#fff';}
+  buildTranslateList(filter);
+}
+
+// ═══ CALCULATORS ═══
+function calcEventFreq(){
+  const e=parseFloat(document.getElementById('ef-events').value)||0;
+  const d=parseFloat(document.getElementById('ef-days').value)||1;
+  document.getElementById('ef-result').textContent=(e/d).toFixed(2)+' events/day';
+}
+function calcTimeRange(){
+  const t=parseFloat(document.getElementById('tr-total').value)||1;
+  const a=parseFloat(document.getElementById('tr-above').value)||0;
+  const pct=((t-a)/t*100).toFixed(1);
+  document.getElementById('tr-result').textContent=pct+'%';
+}
+function calcSelfReturn(){
+  const s=parseFloat(document.getElementById('sr-self').value)||0;
+  const t=parseFloat(document.getElementById('sr-total').value)||1;
+  document.getElementById('sr-result').textContent=(s/t*100).toFixed(1)+'%';
+}
+function calcLatency(){
+  const t=parseFloat(document.getElementById('al-total').value)||0;
+  const e=parseFloat(document.getElementById('al-events').value)||1;
+  document.getElementById('al-result').textContent=(t/e).toFixed(1)+' sec';
+}
+function calcEnvDist(){
+  const qi=parseFloat(document.getElementById('ed-qi').value)||0;
+  const ga=parseFloat(document.getElementById('ed-ga').value)||0;
+  const tr=parseFloat(document.getElementById('ed-tr').value)||0;
+  const un=parseFloat(document.getElementById('ed-un').value)||0;
+  const tot=qi+ga+tr+un||1;
+  document.getElementById('ed-result').textContent=
+    'QI: '+(qi/tot*100).toFixed(1)+'% · GA: '+(ga/tot*100).toFixed(1)+'% · TR: '+(tr/tot*100).toFixed(1)+'% · UN: '+(un/tot*100).toFixed(1)+'%';
+}
+function calcSustained(){
+  const p=parseFloat(document.getElementById('se-periods').value)||0;
+  const d=parseFloat(document.getElementById('se-days').value)||1;
+  const l=parseFloat(document.getElementById('se-longest').value)||0;
+  document.getElementById('se-result').textContent=(p/d).toFixed(2)+' /day · Longest: '+l+' min';
+}
+function calcVocRate(){
+  const v=parseFloat(document.getElementById('vr-voc').value)||0;
+  const m=parseFloat(document.getElementById('vr-min').value)||1;
+  const rate=(v/m).toFixed(2);
+  const interval=v>0?(m/v).toFixed(1):'—';
+  document.getElementById('vr-result').textContent=rate+' /min · 1 every '+interval+' min';
+}
+function calcBioCo(){
+  const w=parseFloat(document.getElementById('bc-with').value)||0;
+  const t=parseFloat(document.getElementById('bc-total').value)||1;
+  document.getElementById('bc-result').textContent=(w/t*100).toFixed(1)+'%';
+}
+function calcDbConvert(){
+  const raw=parseFloat(document.getElementById('db-raw').value)||0;
+  const sens=parseFloat(document.getElementById('db-sens').value)||94;
+  const offset=parseFloat(document.getElementById('db-offset').value)||0;
+  const dba=raw+sens+offset;
+  document.getElementById('db-result').textContent=dba.toFixed(1)+' dBA';
+}
+function calcCalibration(){
+  const slm=parseFloat(document.getElementById('cal-slm').value)||0;
+  const watch=parseFloat(document.getElementById('cal-watch').value)||0;
+  const rawDiff=slm-watch;
+  const rounded=Math.round(rawDiff*2)/2; // round to nearest 0.5
+  const sign=rounded>=0?'+':'';
+  document.getElementById('cal-result').textContent=sign+rounded.toFixed(1)+' dBA';
+  const taps=Math.abs(rounded/0.5);
+  const dir=rounded>=0?'+':'−';
+  let note='';
+  if(rounded===0){
+    note='The watch and SLM agree — no offset needed. Leave the Quick Offset at 0.0 dB.';
+  } else if(rounded>0){
+    note='The reference SLM reads '+rawDiff.toFixed(1)+' dBA higher than the watch (rounded to '+rounded.toFixed(1)+' for 0.5 dB increments). Enter +'+rounded.toFixed(1)+' on the watch\'s Quick Offset screen — tap the + button '+taps+' time'+(taps!==1?'s':'')+' from 0.0. The watch will add '+rounded.toFixed(1)+' dBA to every reading.';
+  } else {
+    note='The watch reads '+Math.abs(rawDiff).toFixed(1)+' dBA higher than the reference SLM (rounded to '+Math.abs(rounded).toFixed(1)+'). Enter '+rounded.toFixed(1)+' on the watch\'s Quick Offset screen — tap the − button '+taps+' time'+(taps!==1?'s':'')+' from 0.0. The watch will subtract '+Math.abs(rounded).toFixed(1)+' dBA from every reading.';
+  }
+  document.getElementById('cal-note').textContent=note;
+}
+
+// ROI CALCULATORS
+function calcSLP(){
+  const stu=parseFloat(document.getElementById('slp-students').value)||0;
+  const sess=parseFloat(document.getElementById('slp-sessions').value)||0;
+  const manual=parseFloat(document.getElementById('slp-manual').value)||0;
+  const band=parseFloat(document.getElementById('slp-band').value)||0;
+  const rate=parseFloat(document.getElementById('slp-rate').value)||0;
+  const weeks=parseFloat(document.getElementById('slp-weeks').value)||0;
+  const savedMinWk=stu*sess*(manual-band);
+  const savedHrsWk=savedMinWk/60;
+  const savedHrsYr=savedHrsWk*weeks;
+  const dollars=savedHrsYr*rate;
+  document.getElementById('slp-weekly').textContent=savedHrsWk.toFixed(1)+' hrs/week';
+  document.getElementById('slp-annual').textContent=Math.round(savedHrsYr)+' hrs/year';
+  document.getElementById('slp-dollars').textContent='$'+dollars.toLocaleString('en-US',{maximumFractionDigits:0})+'/year';
+}
+function calcOT(){
+  const stu=parseFloat(document.getElementById('ot-students').value)||0;
+  const obs=parseFloat(document.getElementById('ot-obs').value)||0;
+  const manual=parseFloat(document.getElementById('ot-manual').value)||0;
+  const band=parseFloat(document.getElementById('ot-band').value)||0;
+  const rate=parseFloat(document.getElementById('ot-rate').value)||0;
+  const months=parseFloat(document.getElementById('ot-months').value)||0;
+  const savedMinMo=stu*obs*(manual-band);
+  const savedHrsMo=savedMinMo/60;
+  const savedHrsYr=savedHrsMo*months;
+  const dollars=savedHrsYr*rate;
+  document.getElementById('ot-monthly').textContent=savedHrsMo.toFixed(1)+' hrs/month';
+  document.getElementById('ot-annual').textContent=Math.round(savedHrsYr)+' hrs/year';
+  document.getElementById('ot-dollars').textContent='$'+dollars.toLocaleString('en-US',{maximumFractionDigits:0})+'/year';
+}
+function calcTeacher(){
+  const stu=parseFloat(document.getElementById('tc-students').value)||0;
+  const rpts=parseFloat(document.getElementById('tc-reports').value)||0;
+  const manual=parseFloat(document.getElementById('tc-manual').value)||0;
+  const band=parseFloat(document.getElementById('tc-band').value)||0;
+  const rate=parseFloat(document.getElementById('tc-rate').value)||0;
+  const savedMin=stu*rpts*(manual-band);
+  const savedHrs=savedMin/60;
+  const dollars=savedHrs*rate;
+  document.getElementById('tc-annual').textContent=savedHrs.toFixed(0)+' hrs/year';
+  document.getElementById('tc-dollars').textContent='$'+dollars.toLocaleString('en-US',{maximumFractionDigits:0})+'/year';
+}
+function calcSchool(){
+  const stu=parseFloat(document.getElementById('sc-students').value)||0;
+  const slpMin=parseFloat(document.getElementById('sc-slp').value)||0;
+  const otMin=parseFloat(document.getElementById('sc-ot').value)||0;
+  const tcMin=parseFloat(document.getElementById('sc-tc').value)||0;
+  const rate=parseFloat(document.getElementById('sc-rate').value)||0;
+  const weeks=parseFloat(document.getElementById('sc-weeks').value)||0;
+  const slpHrs=(stu*slpMin*weeks)/60;
+  const otHrs=(stu*otMin*(weeks/4))/60;
+  const tcHrs=(stu*tcMin*4)/60;
+  const totalHrs=slpHrs+otHrs+tcHrs;
+  const dollars=totalHrs*rate;
+  document.getElementById('sc-hours').textContent=Math.round(totalHrs)+' hrs';
+  document.getElementById('sc-dollars').textContent='$'+dollars.toLocaleString('en-US',{maximumFractionDigits:0});
+}
+
+// Init
+document.addEventListener('DOMContentLoaded',()=>{
+  buildTranslateList('all');
+  simEvent('quiet');
+});
+</script>
+
+
+</body></html>
